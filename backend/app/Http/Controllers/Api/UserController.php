@@ -26,10 +26,14 @@ class UserController extends Controller
 
         // Filtro por Período de cadastro
         if ($request->filled('data_inicio') && $request->filled('data_fim')) {
-            $query->whereBetween('created_at', [$request->data_inicio, $request->data_fim]);
+            // Converte '2025-12-01' para '2025/12/01' para coincidir com o banco
+            $inicio = str_replace('-', '/', $request->data_inicio);
+            $fim = str_replace('-', '/', $request->data_fim);
+
+            $query->whereBetween('data_registration', [$inicio, $fim]);
         }
 
-        return response()->json($query->get());
+        return response()->json($query->paginate(5));
     }
 
     // Cadastro de Usuário e Endereços (N:N)
@@ -40,6 +44,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'cpf' => 'required|string|unique:users,cpf',
             'profile_id' => 'required|exists:profiles,id',
+            'data_registration' => now()->format('Y/m/d'),
         ], [
             'cpf.unique' => 'Este CPF já está cadastrado.',
             'email.unique' => 'Este e-mail já está em uso.',
@@ -75,9 +80,33 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $user->update($request->all());
 
-        // Se houver novos endereços, você pode usar sync() para atualizar a lista
         if ($request->has('addresses')) {
-            // Lógica de sincronização...
+            $addressIds = [];
+
+            foreach ($request->addresses as $item) {
+                // Busca ou cria o endereço (sua lógica original)
+                $address = Address::firstOrCreate([
+                    'logradouro' => $item['logradouro'],
+                    'cep' => $item['cep']
+                ]);
+                $addressIds[] = $address->id;
+            }
+
+            // 3. O sync() retorna um array com 'attached', 'detached' e 'updated'
+            $changes = $user->addresses()->sync($addressIds);
+
+            // IDs que foram removidos da relação deste usuário
+            $detachedIds = $changes['detached'];
+
+            // 4. Lógica de exclusão de endereços órfãos
+            foreach ($detachedIds as $detachedId) {
+                $address = Address::find($detachedId);
+
+                // Verificamos se ainda existe algum OUTRO usuário vinculado a este endereço
+                if ($address && !$address->users()->exists()) {
+                    $address->delete();
+                }
+            }
         }
 
         return response()->json($user);
