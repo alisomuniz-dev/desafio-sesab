@@ -9,25 +9,42 @@
       </div>
 
       <form @submit.prevent="saveUser">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700">Nome*</label>
-            <input v-model="form.name" @input="form.name = form.name.replace(/[^a-zA-ZÀ-ÿ\s]/g, '')" type="text" required class="mt-1 block w-full bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300" />
+            <input v-model="form.name" @input="form.name = form.name.replace(/[^a-zA-ZÀ-ÿ\s]/g, '')" type="text" required class="mt-1 block w-full h-10 bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300"/>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">E-mail*</label>
-            <input v-model="form.email" type="email" required class="mt-1 block w-full bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300" />
+            <input v-model="form.email" type="email" required class="mt-1 block w-full h-10 bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">CPF*</label>
-            <input v-model="form.cpf" v-mask="'###.###.###-##'" type="text" placeholder="000.000.000-00" required class="mt-1 block w-full bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300" />
+            <input v-model="form.cpf" v-mask="'###.###.###-##'" type="text" placeholder="000.000.000-00" required class="mt-1 block w-full h-10 bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300"/>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">Perfil*</label>
-            <select v-model="form.profile_id" required class="mt-1 block w-full bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300">
+            <select v-model="form.profile_id" required class="mt-1 block w-full h-10 bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300">
               <option value="">Selecione um perfil</option>
               <option v-for="p in profiles" :key="p.id" :value="p.id">{{ p.name }}</option>
             </select>
+          </div>
+        </div>
+        <div class="mb-4">
+          <div class="flex flex-col items-end mt-1"> 
+            <div class="relative group flex items-center justify-center cursor-help">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
+                class="w-7 h-7 text-blue-600 hover:text-blue-800 transition-all transform hover:scale-110">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+              </svg>
+
+              <div class="absolute bottom-full left-1/2 -translate-x-1/2 flex-col items-center hidden group-hover:flex w-48 z-20">
+                <span class="relative p-2 text-xm leading-tight text-black bg-gray-100 shadow-lg rounded-md text-center border border-blue-800">
+                  Caso o perfil desejado não esteja presente no select, o usuário pode criar um perfil através da aba de perfis.
+                </span>
+                <div class="w-3 h-3 -mt-1.5 rotate-45 bg-gray-800"></div>
+              </div>
+            </div>
           </div>
         </div>
 
