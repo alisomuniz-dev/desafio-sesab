@@ -16,8 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('cpf')->unique();
+            $table->date('data_registration')->default(now()->format('Y/m/d'));
             $table->foreignId('profile_id')->constrained('profiles');
-            $table->timestamps(); // Cria created_at (usado no filtro de período)
+            $table->timestamps();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

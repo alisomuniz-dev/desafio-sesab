@@ -3,23 +3,30 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Address;
 use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            ProfileSeeder::class,
+            UserSeeder::class,
         ]);
+
+        $addresses = Address::factory(10)->create();
+
+        $users = User::all();
+
+        $users->each(function ($user) use ($addresses) {
+
+            $randomAddresses = $addresses->random(rand(1, 2))->pluck('id');
+
+            $user->addresses()->attach($randomAddresses);
+        });
     }
 }

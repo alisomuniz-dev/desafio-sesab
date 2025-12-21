@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('profiles', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();; // Ex: 'Administrador'
+            $table->string('name')->unique();
+            $table->date('data_registration')->default(now()->format('Y/m/d'));
             $table->timestamps();
         });
     }
