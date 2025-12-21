@@ -12,7 +12,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div>
             <label class="block text-sm font-medium text-gray-700">Nome*</label>
-            <input v-model="form.name" type="text" required class="mt-1 block w-full bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300" />
+            <input v-model="form.name" @input="form.name = form.name.replace(/[^a-zA-ZÀ-ÿ\s]/g, '')" type="text" required class="mt-1 block w-full bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">E-mail*</label>
@@ -20,7 +20,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">CPF*</label>
-            <input v-model="form.cpf" type="text" placeholder="000.000.000-00" required class="mt-1 block w-full bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300" />
+            <input v-model="form.cpf" v-mask="'###.###.###-##'" type="text" placeholder="000.000.000-00" required class="mt-1 block w-full bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">Perfil*</label>
@@ -52,7 +52,7 @@
               <button
                 type="button"
                 @click="removeAddress(index)"
-                class="text-red-500 bg-black-200 hover:bg-red-700 hover:text-gray-100 text-sm font-bold"
+                class="bg-white border-gray-800 text-red-600 hover:bg-red-500 hover:text-white mx-2"
               >
                 Excluir
               </button>
@@ -76,6 +76,7 @@
                 </label>
                 <input
                   v-model="addr.cep"
+                  v-mask="'#####-###'"
                   type="text"
                   class="w-full bg-gray-200 text-black border rounded p-2 mt-1"
                 />
@@ -145,6 +146,16 @@ const showModal = (title, message, type) => {
 };
 
 const saveUser = async () => {
+  // 1. Verificação de segurança: Pelo menos um endereço
+  if (form.addresses.length === 0) {
+    showModal(
+      'Atenção', 
+      'O usuário deve possuir pelo menos um endereço cadastrado.', 
+      'error' // Ou 'warning', dependendo de como seu GenericModal estiliza
+    );
+    return; // Interrompe a execução aqui
+  }
+
   try {
     if (isEditing.value) {
       await api.put(`/usuarios/${route.params.id}`, form); 
@@ -153,16 +164,14 @@ const saveUser = async () => {
       await api.post('/usuarios', form);
       showModal('Concluído', "Usuário Cadastrado com Sucesso", 'success');
     }
-    // IMPORTANTE: Remova o router.push daqui. 
-    // Agora o modal cuidará disso quando o usuário clicar no botão.
-
   } catch (error) {
-    // Tratamento do erro de CPF duplicado (aquele que vimos no log)
+    // Tratamento de erros de validação do backend (ex: CPF/Email duplicado)
     if (error.response?.status === 422) {
-      const msg = error.response.data.errors.cpf?.[0] || "Este e-mail já está em uso.";
+      const errors = error.response.data.errors;
+      const msg = errors.cpf?.[0] || errors.email?.[0] || "Erro de validação nos dados.";
       showModal('Erro', msg, 'error');
     } else {
-      showModal('Erro', "Ocorreu um erro inesperado", 'error');
+      showModal('Erro', "Ocorreu um erro inesperado ao salvar.", 'error');
     }
   }
 };
@@ -170,7 +179,7 @@ const saveUser = async () => {
 onMounted(async () => {
   // Carrega perfis para o select
   const respProfiles = await api.get('/perfis');
-  profiles.value = respProfiles.data;
+  profiles.value = respProfiles.data.data;
 
   // Se for edição, carrega os dados do usuário 
   if (isEditing.value) {
