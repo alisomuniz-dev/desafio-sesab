@@ -56,7 +56,7 @@ Gere a chave:
 
 Execute as migrações: 
     
-`php artisan migrate --seed`
+`php artisan migrate:fresh --seed`
 
 Inicie o servidor: 
         
@@ -98,10 +98,10 @@ Agora basta acessar o frontend em http://localhost:5173
   
   `docker compose exec backend chown -R www-data:www-data /var/www/storage /var/www/database`
 
-* **Porta 3000 ou 8000 ocupada:**
+* **Porta 5173 ou 8000 ocupada:**
   Para encerrar processos que estejam utilizando as portas necessárias:
   
-  `sudo fuser -k 3000/tcp`
+  `sudo fuser -k 5173/tcp`
   
   `sudo fuser -k 8000/tcp`
 
