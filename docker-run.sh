@@ -1,4 +1,6 @@
 #!/bin/bash
+export UID=$(id -u)
+export GID=$(id -g)
 
 # Cores para o terminal
 GREEN='\033[0;32m'
@@ -42,5 +44,5 @@ docker compose exec backend php artisan key:generate --ansi
 docker compose exec backend php artisan migrate:fresh --seed
 
 echo -e "${GREEN}--- Tudo pronto! ---${NC}"
-echo -e "Frontend: http://localhost:3000"
+echo -e "Frontend: http://localhost:5173"
 echo -e "Backend:  http://localhost:8000"

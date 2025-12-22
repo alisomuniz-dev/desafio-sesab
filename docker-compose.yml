@@ -14,6 +14,7 @@ services:
   backend:
     build:
       context: ./backend
+    user: "${UID}:${GID}"
     volumes:
       - ./backend:/var/www
       - /var/www/vendor
@@ -27,4 +28,4 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "5173:80"

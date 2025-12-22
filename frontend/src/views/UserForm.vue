@@ -19,8 +19,18 @@
             <input v-model="form.email" type="email" required class="mt-1 block w-full h-10 bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">CPF*</label>
-            <input v-model="form.cpf" v-mask="'###.###.###-##'" type="text" placeholder="000.000.000-00" required class="mt-1 block w-full h-10 bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300"/>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">CPF*</label>
+              <input 
+                v-model="form.cpf" 
+                v-mask="'###.###.###-##'" 
+                @blur="validateCPF"
+                type="text" 
+                :class="{'border-red-500': errors.cpf}"
+                class="mt-1 block w-full h-10 bg-gray-200 text-black border rounded-md p-2 shadow-sm focus:ring-blue-500 border-gray-300"
+              />
+              <span v-if="errors.cpf" class="text-red-500 text-xs mt-1">{{ errors.cpf }}</span>
+            </div>          
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700">Perfil*</label>
@@ -83,20 +93,23 @@
                 <input
                   v-model="addr.logradouro"
                   type="text"
+                  required
                   class="w-full bg-gray-200 text-black border rounded p-2 mt-1"
                 />
               </div>
 
               <div>
-                <label class="text-xs font-bold text-gray-500 uppercase">
-                  CEP
-                </label>
+                <label class="text-xs font-bold text-gray-500 uppercase">CEP</label>
                 <input
                   v-model="addr.cep"
                   v-mask="'#####-###'"
+                  @blur="validateCEP(index)"
                   type="text"
+                  required
+                  :class="{'border-red-500': addr.error}"
                   class="w-full bg-gray-200 text-black border rounded p-2 mt-1"
                 />
+                <span v-if="addr.error" class="text-red-500 text-xs mt-1">{{ addr.error }}</span>
               </div>
             </div>
           </div>
@@ -128,6 +141,9 @@ import ErrorModal from '../components/GenericModal.vue';
 const route = useRoute();
 const router = useRouter();
 const isEditing = ref(!!route.params.id);
+const errors = reactive({
+  cpf: ''
+});
 
 // Estrutura do formulário conforme PDF 
 const form = reactive({
@@ -141,7 +157,7 @@ const form = reactive({
 const profiles = ref([]);
 
 const addAddress = () => {
-  form.addresses.push({ logradouro: '', cep: '' });
+  form.addresses.push({ logradouro: '', cep: '', error: '' });
 };
 
 const removeAddress = (index) => {
@@ -163,16 +179,31 @@ const showModal = (title, message, type) => {
 };
 
 const saveUser = async () => {
-  // 1. Verificação de segurança: Pelo menos um endereço
-  if (form.addresses.length === 0) {
-    showModal(
-      'Atenção', 
-      'O usuário deve possuir pelo menos um endereço cadastrado.', 
-      'error' // Ou 'warning', dependendo de como seu GenericModal estiliza
-    );
-    return; // Interrompe a execução aqui
+  // 1. Validar CPF (Garante que tem 11 números)
+  const cpfDigits = form.cpf.replace(/\D/g, '');
+  if (cpfDigits.length !== 11) {
+    validateCPF(); // Chama para mostrar a mensagem de erro no input
+    showModal('Erro de Validação', 'O CPF deve ser preenchido completamente.', 'error');
+    return;
   }
 
+  // 2. Verificação de segurança: Pelo menos um endereço
+  if (form.addresses.length === 0) {
+    showModal('Atenção', 'O usuário deve possuir pelo menos um endereço cadastrado.', 'error');
+    return;
+  }
+
+  // 3. Validar todos os CEPs (Garante que todos têm 8 números)
+  for (let i = 0; i < form.addresses.length; i++) {
+    const cepDigits = form.addresses[i].cep.replace(/\D/g, '');
+    if (cepDigits.length !== 8) {
+      validateCEP(i); // Mostra o erro no input específico
+      showModal('Erro de Validação', `O CEP do endereço ${i + 1} está incompleto.`, 'error');
+      return; // Interrompe o salvamento
+    }
+  }
+
+  // 4. Se passou em todas as validações, prossegue para a API
   try {
     if (isEditing.value) {
       await api.put(`/usuarios/${route.params.id}`, form); 
@@ -181,15 +212,34 @@ const saveUser = async () => {
       await api.post('/usuarios', form);
       showModal('Concluído', "Usuário Cadastrado com Sucesso", 'success');
     }
+    // Opcional: router.push('/') após o sucesso
   } catch (error) {
-    // Tratamento de erros de validação do backend (ex: CPF/Email duplicado)
     if (error.response?.status === 422) {
-      const errors = error.response.data.errors;
-      const msg = errors.cpf?.[0] || errors.email?.[0] || "Erro de validação nos dados.";
+      const errorsBackend = error.response.data.errors;
+      const msg = errorsBackend.cpf?.[0] || errorsBackend.email?.[0] || "Erro de validação.";
       showModal('Erro', msg, 'error');
     } else {
       showModal('Erro', "Ocorreu um erro inesperado ao salvar.", 'error');
     }
+  }
+};
+
+const validateCPF = () => {
+  const digits = form.cpf.replace(/\D/g, '');
+  if (digits.length > 0 && digits.length < 11) {
+    errors.cpf = 'O CPF deve conter 11 números.';
+  } else {
+    errors.cpf = ''; // Limpa o erro se estiver correto ou vazio
+  }
+};
+
+const validateCEP = (index) => {
+  const addr = form.addresses[index];
+  const digits = addr.cep.replace(/\D/g, '');
+  if (digits.length > 0 && digits.length < 8) {
+    addr.error = 'O CEP deve conter 8 números.';
+  } else {
+    addr.error = '';
   }
 };
 

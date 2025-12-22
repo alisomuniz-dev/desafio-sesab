@@ -78,13 +78,13 @@ Agora basta acessar o backend em http://localhost:8000
     
     `npm run dev`
 
-Agora basta acessar o frontend em http://localhost:3000
+Agora basta acessar o frontend em http://localhost:5173
 
 ## Rotas do Sistema
 
 | Serviço              | URL                                            | Porta         |
 | -------------------- | ---------------------------------------------- |---------------|
-| Frontend (Vue)       | [http://localhost:3000](http://localhost:3000) |3000           |
+| Frontend (Vue)       | [http://localhost:5173](http://localhost:5173) |5173           |
 | Backend (API)        | [http://localhost:8000](http://localhost:8000) |8000           |
 
     Caso as portas default utilizadas pela aplicação estejam sendo utilizadas, será necessario encerrar o 
