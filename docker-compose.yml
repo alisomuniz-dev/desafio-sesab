@@ -16,6 +16,7 @@ services:
       context: ./backend
     volumes:
       - ./backend:/var/www
+      - /var/www/vendor
     environment:
       - DB_CONNECTION=sqlite
       - DB_DATABASE=/var/www/database/database.sqlite
