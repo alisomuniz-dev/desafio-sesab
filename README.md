@@ -20,6 +20,10 @@ Após realizar a clonagem do projeto em sua máquina, o desenvolvedor poderá in
 
 Neste processo não é necessario criar o .env manualmente o script docker-run.sh gera o .env de forma automatica. 
 
+Acesse a pasta do Projeto
+
+`cd desafio-sesab`
+
 Dê permissão de execução para o arquivo docker-run.sh, ele é responsável por buildar a imagem e rodar o contêiner
 
 `chmod +x docker-run.sh`
